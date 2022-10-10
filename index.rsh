@@ -63,10 +63,10 @@ export const main = Reach.App(() => {
     Deployer.publish(generatedTickets, winningIndex);
 
     const [timeRemaining, keepGoing] = makeDeadline(deadline);
-    Logger.logOpened(state.pad("opened"), deadline);
     Logger.price(paymentAmount);
     Logger.round(rounds);
-
+    
+    Logger.logOpened(state.pad("opened"), deadline);
     const [
       outcome,
       currentOwner,
@@ -136,6 +136,7 @@ export const main = Reach.App(() => {
           ];
         }
       });
+    Logger.logOpened(state.pad("closed"), deadline);
     if (balance() >= amtCont / 2) {
       transfer(amtCont / 2).to(currentOwner);
     }

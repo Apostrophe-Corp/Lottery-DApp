@@ -1,2 +1,2 @@
-# lottery-DApp
+# Lottery-DApp
 A Decentralized Lottery Application

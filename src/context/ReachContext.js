@@ -7,6 +7,8 @@ import {
 import * as backend from '../../build/index.main.mjs'
 import { useClasses as fmtClasses } from '../hooks/useClasses'
 import styles from '../styles/Global.module.css'
+import { Preloader } from '../components/Preloader'
+import { Alert } from '../components/Alert'
 const reach = loadStdlib(process.env)
 
 reach.setWalletFallback(
@@ -17,6 +19,7 @@ reach.setWalletFallback(
 )
 
 const { standardUnit } = reach
+let someCtcInfo = null
 
 export const ReachContext = React.createContext()
 
@@ -64,6 +67,13 @@ const ReachContextProvider = ({ children }) => {
 	const [balance, setBalance] = useState(0)
 	const [contractEnd, setContractEnd] = useState(false)
 
+	const [[waitingPromise, setContribPromise]] = [useState({})]
+
+	const [[showPreloader, setShowPreloader], [processing, setProcessing]] = [
+		useState(false),
+		useState(false),
+	]
+
 	const reset = () => {
 		setIsConcluded(false)
 		setIsOpen(false)
@@ -76,22 +86,65 @@ const ReachContextProvider = ({ children }) => {
 		setContractEnd(false)
 	}
 
-	const sleep = (milliseconds) =>
-		new Promise((resolve) => {
-			setAlertResolve({ resolve })
-			return setTimeout(resolve, milliseconds)
-		})
+	const sleep = (milSecs) =>
+		new Promise((resolve) => setTimeout(resolve, milSecs))
 
-	const cancelAlert = () => {
+	const alertThis = (message) => {
+		const sleep = (milliseconds) =>
+			new Promise((resolve) => {
+				setAlertResolve((lastResolve) => ({ resolve }))
+				return setTimeout(
+					resolve,
+					milliseconds / 1000 > 10 ? 10000 : milliseconds / 1000 < 3 ? 3000 : 0
+				)
+			})
+		setMessage((lastMessage) => message)
+		setShowAlert((lastState) => true)
+		sleep(message.length * 300).then(() => {
+			setShowAlert((lastState) => false)
+		})
+	}
+
+	const hideAlert = () => {
 		alertResolve.resolve()
 	}
 
-	const alertThis = async (message) => {
-		setMessage(message)
-		setShowAlert(true)
-		await sleep(message.length * 200)
-		setShowAlert(false)
-		setMessage('')
+	// Async function
+	const startWaiting = async () => {
+		try {
+			await new Promise((resolve, reject) => {
+				waitingPromise['resolve'] = resolve
+				waitingPromise['reject'] = reject
+				setShowPreloader(true)
+				setProcessing(true)
+			})
+			setShowPreloader(false)
+		} catch {
+			alertThis('Process failed!')
+			setShowPreloader(false)
+		}
+	}
+
+	// Non-async function
+	// const startWaiting = () => {
+	// 	return new Promise((resolve, reject) => {
+	// 		waitingPromise['resolve'] = resolve
+	// 		waitingPromise['reject'] = reject
+	// 		setShowPreloader(true)
+	// 		setProcessing(true)
+	// 	})
+	// 		.then(() => {
+	// 			setShowPreloader(false)
+	// 		})
+	// 		.catch(() => {
+	// 			alertThis('Process failed!')
+	// 			setShowPreloader(false)
+	// 		})
+	// }
+
+	const stopWaiting = (mode) => {
+		if (mode) waitingPromise?.resolve && waitingPromise.resolve()
+		else waitingPromise?.reject && waitingPromise.reject()
 	}
 
 	const sortArrayOfObjects = (arrayOfObjects, property) => {
@@ -137,6 +190,7 @@ const ReachContextProvider = ({ children }) => {
 		})
 		setTerms(terms)
 		console.log(terms)
+		startWaiting()
 		return [
 			terms[0],
 			reach.parseCurrency(terms[1]),
@@ -192,20 +246,21 @@ const ReachContextProvider = ({ children }) => {
 			ticket: parseInt(what[1]),
 		})
 		setParticipants([...newParticipants])
+		stopWaiting(true)
 	}
 
 	const announce = async ({ when, what }) => {
 		await sleep(5000)
-		await alertThis(
+		alertThis(
 			`Congrats, user with ticket number ${what[1]}, you just won half the pot!`
 		)
 
 		if (what[2]) {
 			await sleep(5000)
-			await alertThis(`The next round would begin shortly`)
+			alertThis(`The next round would begin shortly`)
 		} else {
 			await sleep(5000)
-			await alertThis(
+			alertThis(
 				`The targeted amount has been raised, transferring contract balance of ${reach.formatCurrency(
 					what[3],
 					4
@@ -232,30 +287,38 @@ const ReachContextProvider = ({ children }) => {
 		const ifState = (x) => x.padEnd(20, '\u0000')
 		switch (paddedState) {
 			case ifState('initiating'):
-				await alertThis(`Initiating contract operations!`)
+				alertThis(`Initiating contract operations!`)
 				break
 			case ifState('opened'):
-				await alertThis(
+				alertThis(
 					`The normal draw window has opened! It will timeout in ${parseInt(
 						what[1]
 					)} blocks.`
-				)
+                )
+                setContract(someCtcInfo)
 				setIsOpen(true)
 				setHasPurchased(false)
+				setViews({ view: 'Participants', wrapper: 'AppWrapper' })
+				stopWaiting(true)
 				break
-            case ifState('closed'):
-                // TODO Show the closed view
-				// await alertThis(
+			case ifState('closed'):
+				startWaiting()
+				alertThis(
+					'The round has ended, spinning up a new window to start the next round.'
+				)
+				// TODO Show the closed view
+				// alertThis(
 				// 	`The normal draw window has opened! It will timeout in ${parseInt(
 				// 		what[1]
 				// 	)} blocks.`
 				// )
 				// setIsOpen(true)
-				// setHasPurchased(false)                
+				// setHasPurchased(false)
 				break
-            case ifState('timeout'):
-                // TODO disable the purchasing button
-				await alertThis(
+			case ifState('timeout'):
+				startWaiting()
+				// TODO disable the purchasing button
+				alertThis(
 					`The normal draw window has timed out, yet tickets remain, increasing price by 25%!`
 				)
 				break
@@ -279,12 +342,12 @@ const ReachContextProvider = ({ children }) => {
 
 	const receivePrice = ({ when, what }) => {
 		setAmount(reach.formatCurrency(what[0], 4))
+        stopWaiting(true)
 	}
 
 	const assignMonitors = (events) => {
 		events.log.monitor(log)
 		events.logOpened.monitor(log)
-		events.logClosed.monitor(log)
 		events.notify.monitor(notify)
 		events.round.monitor(updateRound)
 		events.balance.monitor(updateBalance)
@@ -304,6 +367,7 @@ const ReachContextProvider = ({ children }) => {
 		setContract({ ctcInfoStr })
 		reset()
 		setViews({ ...views, view: 'Deployed' })
+		stopWaiting(true)
 	}
 
 	const selectDeployer = async () => {
@@ -314,13 +378,16 @@ const ReachContextProvider = ({ children }) => {
 	const attach = async (ctcInfoStr) => {
 		try {
 			reset()
-			setViews({ view: 'Attaching', wrapper: 'AppWrapper' })
+			startWaiting()
+
 			const ctc = user.account.contract(backend, JSON.parse(ctcInfoStr))
 			setAttacherContract(ctc)
-			setContract({ ctcInfoStr })
+			someCtcInfo = { ctcInfoStr }
 			assignMonitors(ctc.events)
+			alertThis(`Please wait for the Deployer to open the draw window.`)
 		} catch (error) {
 			console.log({ error })
+			stopWaiting(false)
 		}
 	}
 
@@ -333,16 +400,19 @@ const ReachContextProvider = ({ children }) => {
 	}
 
 	const buyTicket = async () => {
+		startWaiting()
 		setHasPurchased(true)
 		try {
-			await alertThis(
+			alertThis(
 				`You just pulled out ticket number ${await attacherContract.apis.Players.drawATicket()}`
 			)
 		} catch (error) {
-			await alertThis(
+			alertThis(
 				`Sorry couldn't process purchase, possibly due to a timeout. Retry in a few seconds.`
 			)
+			setIsOpen(false)
 			setHasPurchased(false)
+			stopWaiting(false)
 		}
 	}
 
@@ -369,6 +439,22 @@ const ReachContextProvider = ({ children }) => {
 		round,
 		canContinue,
 
+		showPreloader,
+		setShowPreloader,
+		processing,
+		setProcessing,
+
+		startWaiting,
+		stopWaiting,
+
+		sleep,
+
+		message,
+		setMessage,
+		showAlert,
+		hideAlert,
+		alertThis,
+
 		participants,
 		isDeployer,
 		hasPurchased,
@@ -393,21 +479,8 @@ const ReachContextProvider = ({ children }) => {
 			<Helmet>
 				<title>A Decentralized Lottery App</title>
 			</Helmet>
-			{showAlert && (
-				<div className={fmtClasses(styles.alertContainer)}>
-					<div
-						className={fmtClasses(styles.mask)}
-						onClick={cancelAlert}
-					></div>
-					<div className={fmtClasses(styles.alert)}>
-						<div
-							className={fmtClasses(styles.cancel)}
-							onClick={cancelAlert}
-						></div>
-						<span className={fmtClasses(styles.message)}>{message}</span>
-					</div>
-				</div>
-			)}
+			<Alert />
+			{processing && <Preloader />}
 			{children}
 			{user.account && (
 				<div className={fmtClasses(styles.last)}>

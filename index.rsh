@@ -81,7 +81,7 @@ export const main = Reach.App(() => {
 		Logger.round(rounds)
 
 		const [timeRemaining, keepGoing] = makeDeadline(deadline)
-		Logger.logOpened(state.pad('opened'), deadline - thisConsensusTime())
+		Logger.logOpened(state.pad('opened'), deadline)
 		const [outcome, currentOwner, currentBalance, playerCount, amtCont] =
 			parallelReduce([LOST, Deployer, balance(), 0, 0])
 				.invariant(balance() == currentBalance)
@@ -116,6 +116,7 @@ export const main = Reach.App(() => {
 						Deployer.publish()
 						const increasedPayment = (paymentAmount / 100) * 125
 						Logger.price(increasedPayment)
+						Logger.logOpened(state.pad('opened'), deadline)
 						const [
 							tOutcome,
 							tCurrentOwner,
@@ -164,10 +165,10 @@ export const main = Reach.App(() => {
 						return [outcome, currentOwner, currentBalance, playerCount, amtCont]
 					}
 				})
-		Logger.log(state.pad('closed'))
 		if (balance() >= amtCont / 2) {
 			transfer(amtCont / 2).to(currentOwner)
 		}
+		if (balance() < target) Logger.log(state.pad('closed'))
 		Logger.balance(totalGathered + amtCont / 2)
 		Logger.announce(
 			currentOwner,

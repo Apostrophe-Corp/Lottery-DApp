@@ -69,7 +69,7 @@ const Participants = () => {
                                 ) }>
                                     { !isOpen && <span className={ fmtClasses(
                                         styles.littleText,
-                                    ) }>The raffle window isn't open yet.</span> }
+                                    ) }>The window has been closed temporarily.</span> }
                                     <button
                                         className={ fmtClasses(
                                             isOpen ? styles.button : styles.disabled,

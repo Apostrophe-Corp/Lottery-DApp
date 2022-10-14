@@ -82,6 +82,7 @@ const ReachContextProvider = ({ children }) => {
 		setParticipants([])
 		setWinners([])
 		setMessage('')
+        setContract({})
 		setBalance(0)
 		setContractEnd(false)
 	}
@@ -301,20 +302,6 @@ const ReachContextProvider = ({ children }) => {
 				setViews({ view: 'Participants', wrapper: 'AppWrapper' })
 				stopWaiting(true)
 				break
-			case ifState('closed'):
-				startWaiting()
-				alertThis(
-					'The round has ended, spinning up a new window to start the next round.'
-				)
-				// TODO Show the closed view
-				// alertThis(
-				// 	`The normal draw window has opened! It will timeout in ${parseInt(
-				// 		what[1]
-				// 	)} blocks.`
-				// )
-				// setIsOpen(true)
-				// setHasPurchased(false)
-				break
 			case ifState('timeout'):
 				startWaiting()
 				// TODO disable the purchasing button
@@ -487,7 +474,8 @@ const ReachContextProvider = ({ children }) => {
 					<button
 						className={fmtClasses(styles.back)}
 						onClick={() => {
-							setViews({ view: 'DeployerOrAttacher', wrapper: 'AppWrapper' })
+                            setViews({ view: 'DeployerOrAttacher', wrapper: 'AppWrapper' })
+                            reset()
 						}}
 					>
 						Select Roles

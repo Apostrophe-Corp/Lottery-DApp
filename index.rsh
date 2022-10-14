@@ -168,7 +168,6 @@ export const main = Reach.App(() => {
 		if (balance() >= amtCont / 2) {
 			transfer(amtCont / 2).to(currentOwner)
 		}
-		if (balance() < target) Logger.log(state.pad('closed'))
 		Logger.balance(totalGathered + amtCont / 2)
 		Logger.announce(
 			currentOwner,

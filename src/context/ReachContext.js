@@ -25,7 +25,7 @@ export const ReachContext = React.createContext()
 
 const ReachContextProvider = ({ children }) => {
 	const [defaults] = useState({
-		defaultPaymentAmount: 0.8,
+		defaultPaymentAmount: '##',
 		defaultDeadline: { ETH: 100, ALGO: 1000, CFX: 10000 }[reach.connector],
 		standardUnit,
 		connector: reach.connector,
@@ -67,7 +67,7 @@ const ReachContextProvider = ({ children }) => {
 	const [balance, setBalance] = useState(0)
 	const [contractEnd, setContractEnd] = useState(false)
 
-	const [[waitingPromise, setContribPromise]] = [useState({})]
+	const [[waitingPromise, setContribPromise], [hasIncreased, setHasIncreased]] = [useState({}), useState(false)]
 
 	const [[showPreloader, setShowPreloader], [processing, setProcessing]] = [
 		useState(false),
@@ -85,6 +85,7 @@ const ReachContextProvider = ({ children }) => {
         setContract({})
 		setBalance(0)
 		setContractEnd(false)
+		setHasIncreased(false)
 	}
 
 	const sleep = (milSecs) =>
@@ -303,7 +304,7 @@ const ReachContextProvider = ({ children }) => {
 				stopWaiting(true)
 				break
 			case ifState('timeout'):
-				startWaiting()
+				// startWaiting()
 				// TODO disable the purchasing button
 				alertThis(
 					`The normal draw window has timed out, yet tickets remain, increasing price by 25%!`
@@ -328,7 +329,9 @@ const ReachContextProvider = ({ children }) => {
 	}
 
 	const receivePrice = ({ when, what }) => {
-		setAmount(reach.formatCurrency(what[0], 4))
+		const incomingAmount = reach.formatCurrency(what[0])
+		setHasIncreased(what[1])
+		setAmount(incomingAmount)
         stopWaiting(true)
 	}
 
@@ -343,6 +346,7 @@ const ReachContextProvider = ({ children }) => {
 	}
 
 	const deploy = async () => {
+		reset()
 		const ctc = user.account.contract(backend)
 		setViews({ view: 'Deploying', wrapper: 'AppWrapper' })
 
@@ -352,7 +356,6 @@ const ReachContextProvider = ({ children }) => {
 		const ctcInfoStr = JSON.stringify(await ctc.getInfo(), null, 2)
 		console.log(ctcInfoStr)
 		setContract({ ctcInfoStr })
-		reset()
 		setViews({ ...views, view: 'Deployed' })
 		stopWaiting(true)
 	}
@@ -425,6 +428,7 @@ const ReachContextProvider = ({ children }) => {
 		isOpen,
 		round,
 		canContinue,
+		hasIncreased,
 
 		showPreloader,
 		setShowPreloader,

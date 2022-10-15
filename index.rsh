@@ -48,7 +48,7 @@ export const main = Reach.App(() => {
 	const Logger = Events({
 		log: [state],
 		logOpened: [state, UInt],
-		price: [UInt],
+		price: [UInt,Bool],
 		notify: [Address, UInt],
 		round: [UInt],
 		balance: [UInt],
@@ -77,7 +77,7 @@ export const main = Reach.App(() => {
 			)
 		})
 		Deployer.publish(generatedTickets, winningIndex)
-		Logger.price(paymentAmount)
+		Logger.price(paymentAmount,false)
 		Logger.round(rounds)
 
 		const [timeRemaining, keepGoing] = makeDeadline(deadline)
@@ -115,7 +115,7 @@ export const main = Reach.App(() => {
 						commit()
 						Deployer.publish()
 						const increasedPayment = (paymentAmount / 100) * 125
-						Logger.price(increasedPayment)
+						Logger.price(increasedPayment,true)
 						Logger.logOpened(state.pad('opened'), deadline)
 						const [
 							tOutcome,

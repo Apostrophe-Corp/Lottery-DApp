@@ -154,7 +154,7 @@
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	transform: scale(0.9, 0.9);
+	/* transform: scale(0.9, 0.9); */
 }
 
 .increased {
@@ -163,6 +163,7 @@
 
 .higher {
 	background-color: rgb(223, 83, 255) !important;
+  border-color: rgb(223, 83, 255) !important;
 }
 
 /* .initial {

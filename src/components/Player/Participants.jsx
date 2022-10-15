@@ -37,11 +37,16 @@ const Participants = () => {
 					setBConClass((previous) =>
 						fmtClasses(styles.bContainer, styles.increased)
 					)
-					await sleep(800).then(() => {
+                    setBClass(
+                        (previous) =>
+                            fmtClasses(isOpen ? styles.button : styles.disabled,
+                        styles.zIn)
+                    )
+					await sleep(100).then(() => {
 						setBClass(
 							(previous) =>
-								fmtClasses(isOpen ? styles.button : styles.disabled),
-							styles.zIn
+								fmtClasses(isOpen ? styles.button : styles.disabled,
+							styles.zIn)
 						)
 					})
 				})
@@ -101,9 +106,9 @@ const Participants = () => {
 												<button
 													className={bClass}
 													onClick={buyTicket}
-													disabled={!isOpen}
+													disabled={!(isOpen && !hasIncreased)}
 												>
-													{isOpen
+													{isOpen && !hasIncreased
 														? `Buy Ticket at ${amount} ${standardUnit}`
 														: 'Please wait...'}
 												</button>

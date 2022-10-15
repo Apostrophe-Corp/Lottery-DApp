@@ -154,16 +154,16 @@
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	/* transform: scale(0.9, 0.9); */
+	transform: scale(1, 1) !important;
 }
 
 .increased {
-	transform: translateX(-50%);
+	transform: translate(-50%) !important;
 }
 
 .higher {
 	background-color: rgb(223, 83, 255) !important;
-  border-color: rgb(223, 83, 255) !important;
+	border-color: rgb(223, 83, 255) !important;
 }
 
 /* .initial {
@@ -171,9 +171,5 @@
 } */
 
 .zOut {
-	transform: scale(0.9, 0.9);
-}
-
-.zIn {
-	transform: scale(1, 1);
+	transform: scale(0.9, 0.9) !important;
 }

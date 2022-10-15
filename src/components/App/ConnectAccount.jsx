@@ -1,22 +1,30 @@
-import React from "react";
-import { useReach, useClasses } from "../../hooks";
-import styles from "../../styles/Global.module.css";
+import React, { useEffect } from 'react'
+import { useReach, useClasses } from '../../hooks'
+import styles from '../../styles/Global.module.css'
 
 const ConnectAccount = () => {
-    const { connectAccount } = useReach();
+	const { connectAccount } = useReach()
+	useEffect(() => {
+		connectAccount()
+	}, [connectAccount])
+	return (
+		<div className={useClasses(styles.subContainer)}>
+			<div className={useClasses()}>
+				<span className={useClasses(styles.littleText)}>
+					Click the button below to connect your account. If this takes more
+					than a few seconds, there may be something wrong.
+				</span>
+			</div>
+			<div className={useClasses()}>
+				<button
+					className={useClasses(styles.actionButton)}
+					onClick={connectAccount}
+				>
+					Connect Wallet
+				</button>
+			</div>
+		</div>
+	)
+}
 
-    return (
-        <div className={ useClasses(styles.subContainer) }>
-            <div className={ useClasses() }>
-                <span className={ useClasses(styles.littleText) }>Click the button below to connect your account. If this takes more than a few seconds, there may be something wrong.</span>
-            </div>
-            <div className={ useClasses() }>
-                <button className={ useClasses(styles.actionButton) } onClick={ connectAccount }>
-                    Connect Wallet
-                </button>
-            </div>
-        </div>
-    );
-};
-
-export default ConnectAccount;
+export default ConnectAccount

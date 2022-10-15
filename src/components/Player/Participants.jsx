@@ -28,30 +28,18 @@ const Participants = () => {
 
 	useEffect(() => {
 		const doSomething = async () => {
-			if (hasIncreased) {
-				setBClass(
-					fmtClasses(isOpen ? styles.button : styles.disabled),
-					styles.zOut
-				)
-				await sleep(1500).then(async () => {
-					setBConClass((previous) =>
-						fmtClasses(styles.bContainer, styles.increased)
-					)
-                    setBClass(
-                        (previous) =>
-                            fmtClasses(isOpen ? styles.button : styles.disabled,
-                        styles.zIn)
-                    )
-					await sleep(100).then(() => {
-						setBClass(
-							(previous) =>
-								fmtClasses(isOpen ? styles.button : styles.disabled,
-							styles.zIn)
-						)
-					})
-				})
+			if (hasIncreased === true) {
+				setBClass((previous) => fmtClasses(previous, styles.zOut))
+				await sleep(1500)
+				setBConClass((previous) => fmtClasses(previous, styles.increased))
+				await sleep(1000)
+				setBClass((previous) => fmtClasses(styles.button))
 			} else {
+				setBClass((previous) => fmtClasses(previous, styles.zOut))
+				await sleep(1500)
 				setBConClass((previous) => fmtClasses(styles.bContainer))
+				await sleep(1000)
+				setBClass((previous) => fmtClasses(styles.button))
 			}
 		}
 		doSomething()
@@ -62,33 +50,35 @@ const Participants = () => {
 			<h1 className={useClasses(styles.title)}>
 				{contractEnd ? `Contract Closed` : `Participants (Round ${round})`}
 			</h1>
-			<div className={useClasses(styles.proposals)}>
-				<div className={useClasses(styles.proposal)}>
-					<div className={useClasses(styles.identifiers)}>
-						<span className={useClasses(styles.time)}>Consensus Time</span>
-						<span className={useClasses(styles.address)}>Address</span>
+			{!contractEnd && (
+				<div className={fmtClasses(styles.proposals)}>
+					<div className={fmtClasses(styles.proposal)}>
+						<div className={fmtClasses(styles.identifiers)}>
+							<span className={fmtClasses(styles.time)}>Consensus Time</span>
+							<span className={fmtClasses(styles.address)}>Address</span>
+						</div>
+						<span className={fmtClasses(styles.ticket)}>Ticket Number</span>
 					</div>
-					<span className={useClasses(styles.ticket)}>Ticket Number</span>
-				</div>
-				{sortArrayOfObjects(participants, 'id')
-					.filter((el) => el.id > (round - 1) * 5 && el.id <= round * 5)
-					.map((el, index) => {
-						return (
-							<div
-								key={index}
-								className={fmtClasses(styles.proposal)}
-							>
-								<div className={fmtClasses(styles.identifiers)}>
-									<span className={fmtClasses(styles.time)}>{el.time}</span>
-									<span className={fmtClasses(styles.address)}>
-										{el.address}
-									</span>
+					{sortArrayOfObjects(participants, 'id')
+						.filter((el) => el.id > (round - 1) * 5 && el.id <= round * 5)
+						.map((el, index) => {
+							return (
+								<div
+									key={index}
+									className={fmtClasses(styles.proposal)}
+								>
+									<div className={fmtClasses(styles.identifiers)}>
+										<span className={fmtClasses(styles.time)}>{el.time}</span>
+										<span className={fmtClasses(styles.address)}>
+											{el.address}
+										</span>
+									</div>
+									<span className={fmtClasses(styles.ticket)}>{el.ticket}</span>
 								</div>
-								<span className={fmtClasses(styles.ticket)}>{el.ticket}</span>
-							</div>
-						)
-					})}
-			</div>
+							)
+						})}
+				</div>
+			)}
 			{!contractEnd && (
 				<>
 					{!hasPurchased && (

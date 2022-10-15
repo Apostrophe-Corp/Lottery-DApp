@@ -19,18 +19,18 @@
 	height: 100%;
 	width: 100%;
 	z-index: -1;
-	background-color: rgba(0, 0, 0,0.3);
+	background-color: transparent;
 }
 
 .alert {
 	position: relative;
 	padding: 20px 30px;
-	color: var(--themeText);
-	background-color: #000;
-	border: 3px solid var(--theme);
+	color: #000;
+	background-color: rgb(0, 170, 255);
+	border: 3px solid #fff;
 	border-radius: 10px;
 	max-width: max(50%, 250px);
-    box-shadow: 0 2px 5px 0 var(--theme);;
+    box-shadow: 0 2px 5px 0 #fff;
 	text-align: center;
 	display: flex;
 	justify-content: center;
@@ -51,7 +51,7 @@
 	width: 10px;
 	height: 10px;
 	border-radius: 50%;
-	background-color: var(--theme);
+	background-color: #fff;
 	cursor: pointer;
 }
 

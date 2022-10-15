@@ -48,7 +48,7 @@ export const main = Reach.App(() => {
 	const Logger = Events({
 		log: [state],
 		logOpened: [state, UInt],
-		price: [UInt,Bool],
+		price: [UInt, Bool],
 		notify: [Address, UInt],
 		round: [UInt],
 		balance: [UInt],
@@ -77,7 +77,7 @@ export const main = Reach.App(() => {
 			)
 		})
 		Deployer.publish(generatedTickets, winningIndex)
-		Logger.price(paymentAmount,false)
+		Logger.price(paymentAmount, false)
 		Logger.round(rounds)
 
 		const [timeRemaining, keepGoing] = makeDeadline(deadline)
@@ -111,59 +111,53 @@ export const main = Reach.App(() => {
 				.timeout(timeRemaining(), () => {
 					Deployer.publish()
 					Logger.log(state.pad('timeout'))
-					if (playerCount < 5) {
-						commit()
-						Deployer.publish()
-						const increasedPayment = (paymentAmount / 100) * 125
-						Logger.price(increasedPayment,true)
-						Logger.logOpened(state.pad('opened'), deadline)
-						const [
-							tOutcome,
-							tCurrentOwner,
-							tCurrentBalance,
-							tPlayerCount,
-							tAmtCont,
-						] = parallelReduce([
-							outcome,
-							currentOwner,
-							currentBalance,
-							playerCount,
-							amtCont,
-						])
-							.invariant(balance() == tCurrentBalance)
-							.while(tPlayerCount < 5)
-							.api_(Players.drawATicket, () => {
-								return [
-									increasedPayment,
-									(notify) => {
-										const ticketNumber = generatedTickets[playerCount]
-										const verdict = winner(
-											generatedTickets[winningIndex > 4 ? 0 : winningIndex],
-											ticketNumber
-										)
-										const currentHolder = verdict == WON ? this : currentOwner
-										notify(ticketNumber)
-										Logger.notify(this, ticketNumber)
-										return [
-											verdict,
-											currentHolder,
-											tCurrentBalance + increasedPayment,
-											tPlayerCount + 1,
-											tAmtCont + increasedPayment,
-										]
-									},
-								]
-							})
-						return [
-							tOutcome,
-							tCurrentOwner,
-							tCurrentBalance,
-							tPlayerCount,
-							tAmtCont,
-						]
-					} else {
-						return [outcome, currentOwner, currentBalance, playerCount, amtCont]
-					}
+					const increasedPayment = (paymentAmount / 100) * 125
+					Logger.price(increasedPayment, true)
+					Logger.logOpened(state.pad('opened'), deadline)
+					const [
+						tOutcome,
+						tCurrentOwner,
+						tCurrentBalance,
+						tPlayerCount,
+						tAmtCont,
+					] = parallelReduce([
+						outcome,
+						currentOwner,
+						currentBalance,
+						playerCount,
+						amtCont,
+					])
+						.invariant(balance() == tCurrentBalance)
+						.while(tPlayerCount < 5)
+						.api_(Players.drawATicket, () => {
+							return [
+								increasedPayment,
+								(notify) => {
+									const ticketNumber = generatedTickets[playerCount]
+									const verdict = winner(
+										generatedTickets[winningIndex > 4 ? 0 : winningIndex],
+										ticketNumber
+									)
+									const currentHolder = verdict == WON ? this : currentOwner
+									notify(ticketNumber)
+									Logger.notify(this, ticketNumber)
+									return [
+										verdict,
+										currentHolder,
+										tCurrentBalance + increasedPayment,
+										tPlayerCount + 1,
+										tAmtCont + increasedPayment,
+									]
+								},
+							]
+						})
+					return [
+						tOutcome,
+						tCurrentOwner,
+						tCurrentBalance,
+						tPlayerCount,
+						tAmtCont,
+					]
 				})
 		if (balance() >= amtCont / 2) {
 			transfer(amtCont / 2).to(currentOwner)

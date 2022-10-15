@@ -67,7 +67,8 @@ const ReachContextProvider = ({ children }) => {
 	const [balance, setBalance] = useState(0)
 	const [contractEnd, setContractEnd] = useState(false)
 
-	const [[waitingPromise, setContribPromise], [hasIncreased, setHasIncreased]] = [useState({}), useState(false)]
+	const [[waitingPromise, setContribPromise], [hasIncreased, setHasIncreased]] =
+		[useState({}), useState(false)]
 
 	const [[showPreloader, setShowPreloader], [processing, setProcessing]] = [
 		useState(false),
@@ -82,7 +83,7 @@ const ReachContextProvider = ({ children }) => {
 		setParticipants([])
 		setWinners([])
 		setMessage('')
-        setContract({})
+		setContract({})
 		setBalance(0)
 		setContractEnd(false)
 		setHasIncreased(false)
@@ -94,10 +95,11 @@ const ReachContextProvider = ({ children }) => {
 	const alertThis = (message) => {
 		const sleep = (milliseconds) =>
 			new Promise((resolve) => {
+				alertResolve?.resolve && alertResolve.resolve()
 				setAlertResolve((lastResolve) => ({ resolve }))
 				return setTimeout(
 					resolve,
-					milliseconds / 1000 > 10 ? 10000 : milliseconds / 1000 < 3 ? 3000 : 0
+					milliseconds / 1000 > 10 ? 5000 : milliseconds / 1000 < 3 ? 3000 : 0
 				)
 			})
 		setMessage((lastMessage) => message)
@@ -290,22 +292,24 @@ const ReachContextProvider = ({ children }) => {
 		switch (paddedState) {
 			case ifState('initiating'):
 				alertThis(`Initiating contract operations!`)
+				setViews({ view: 'Participants', wrapper: 'AppWrapper' })
 				break
 			case ifState('opened'):
 				alertThis(
 					`The normal draw window has opened! It will timeout in ${parseInt(
 						what[1]
 					)} blocks.`
-                )
-                setContract(someCtcInfo)
-				setIsOpen(true)
+				)
+				setContract(someCtcInfo)
 				setHasPurchased(false)
-				setViews({ view: 'Participants', wrapper: 'AppWrapper' })
+				setHasIncreased(false)
+				setIsOpen(true)
 				stopWaiting(true)
 				break
 			case ifState('timeout'):
 				// startWaiting()
 				// TODO disable the purchasing button
+				// setIsOpen(false)
 				alertThis(
 					`The normal draw window has timed out, yet tickets remain, increasing price by 25%!`
 				)
@@ -317,6 +321,8 @@ const ReachContextProvider = ({ children }) => {
 
 	const updateRound = ({ when, what }) => {
 		setRound(parseInt(what[0]))
+		stopWaiting(true)
+		setHasIncreased(false)
 	}
 
 	const updateBalance = ({ when, what }) => {
@@ -330,9 +336,10 @@ const ReachContextProvider = ({ children }) => {
 
 	const receivePrice = ({ when, what }) => {
 		const incomingAmount = reach.formatCurrency(what[0])
+		if (what[1]) setIsOpen(what[1])
 		setHasIncreased(what[1])
 		setAmount(incomingAmount)
-        stopWaiting(true)
+		stopWaiting(true)
 	}
 
 	const assignMonitors = (events) => {
@@ -400,7 +407,7 @@ const ReachContextProvider = ({ children }) => {
 			alertThis(
 				`Sorry couldn't process purchase, possibly due to a timeout. Retry in a few seconds.`
 			)
-			setIsOpen(false)
+			// setIsOpen(false)
 			setHasPurchased(false)
 			stopWaiting(false)
 		}
@@ -478,8 +485,8 @@ const ReachContextProvider = ({ children }) => {
 					<button
 						className={fmtClasses(styles.back)}
 						onClick={() => {
-                            setViews({ view: 'DeployerOrAttacher', wrapper: 'AppWrapper' })
-                            reset()
+							setViews({ view: 'DeployerOrAttacher', wrapper: 'AppWrapper' })
+							reset()
 						}}
 					>
 						Select Roles

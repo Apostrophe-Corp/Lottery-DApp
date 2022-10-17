@@ -92,7 +92,7 @@ const ReachContextProvider = ({ children }) => {
 	const sleep = (milSecs) =>
 		new Promise((resolve) => setTimeout(resolve, milSecs))
 
-	const alertThis = (message) => {
+	const alertThis = async (message) => {
 		const sleep = (milliseconds) =>
 			new Promise((resolve) => {
 				alertResolve?.resolve && alertResolve.resolve()
@@ -104,9 +104,8 @@ const ReachContextProvider = ({ children }) => {
 			})
 		setMessage((lastMessage) => message)
 		setShowAlert((lastState) => true)
-		sleep(message.length * 300).then(() => {
-			setShowAlert((lastState) => false)
-		})
+		await sleep(message.length * 300)
+		setShowAlert((lastState_1) => false)
 	}
 
 	const hideAlert = () => {
@@ -253,18 +252,43 @@ const ReachContextProvider = ({ children }) => {
 		stopWaiting(true)
 	}
 
+	const initiated = () => {
+		setViews({ view: 'Participants', wrapper: 'AppWrapper' })
+	}
+
+	const startRound = async ({ what }) => {
+		setRound(parseInt(what[0]))
+		setContract(someCtcInfo)
+		setHasIncreased(false)
+		setHasPurchased(false)
+		setIsOpen(true)
+		const incomingAmount = reach.formatCurrency(what[2])
+		setAmount(incomingAmount)
+		alertThis(
+			`The normal draw window has opened! It will timeout in ${parseInt(
+				what[1]
+			)} blocks.`
+		)
+		stopWaiting(true)
+	}
+
+	const increasePrice = async ({ what }) => {
+		const incomingAmount = reach.formatCurrency(what[0])
+		setAmount(incomingAmount)
+		setHasIncreased(true)
+	}
+
 	const announce = async ({ when, what }) => {
 		await sleep(5000)
-		alertThis(
+		await alertThis(
 			`Congrats, user with ticket number ${what[1]}, you just won half the pot!`
 		)
 
 		if (what[2]) {
-			await sleep(5000)
-			alertThis(`The next round would begin shortly`)
+			await alertThis(`The next round would begin shortly`)
+			startWaiting()
 		} else {
-			await sleep(5000)
-			alertThis(
+			await alertThis(
 				`The targeted amount has been raised, transferring contract balance of ${reach.formatCurrency(
 					what[3],
 					4
@@ -275,6 +299,7 @@ const ReachContextProvider = ({ children }) => {
 
 		setIsConcluded(true)
 		setCanContinue(what[2])
+		setBalance(reach.formatCurrency(what[3], 4))
 		const id = winners.length + 1
 		const newWinners = winners
 		newWinners.push({
@@ -286,68 +311,11 @@ const ReachContextProvider = ({ children }) => {
 		setWinners([...newWinners])
 	}
 
-	const log = async ({ when, what }) => {
-		const paddedState = what[0]
-		const ifState = (x) => x.padEnd(20, '\u0000')
-		switch (paddedState) {
-			case ifState('initiating'):
-				alertThis(`Initiating contract operations!`)
-				setViews({ view: 'Participants', wrapper: 'AppWrapper' })
-				break
-			case ifState('opened'):
-				alertThis(
-					`The normal draw window has opened! It will timeout in ${parseInt(
-						what[1]
-					)} blocks.`
-				)
-				setContract(someCtcInfo)
-				setHasPurchased(false)
-				setIsOpen(true)
-				stopWaiting(true)
-				break
-			case ifState('timeout'):
-				// startWaiting()
-				// TODO disable the purchasing button
-				// setIsOpen(false)
-				alertThis(
-					`The normal draw window has timed out, yet tickets remain, increasing price by 25%!`
-				)
-				break
-			default:
-				break
-		}
-	}
-
-	const updateRound = ({ when, what }) => {
-		setRound(parseInt(what[0]))
-		stopWaiting(true)
-		setHasIncreased(false)
-	}
-
-	const updateBalance = ({ when, what }) => {
-		setBalance(reach.formatCurrency(what[0], 4))
-		if (isConcluded && canContinue) {
-			setHasPurchased(false)
-			setIsConcluded(false)
-			setIsOpen(true)
-		}
-	}
-
-	const receivePrice = ({ when, what }) => {
-		const incomingAmount = reach.formatCurrency(what[0])
-		// if (what[1]) setIsOpen(what[1])
-		if (what[1]) setHasIncreased(what[1])
-		setAmount(incomingAmount)
-		stopWaiting(true)
-	}
-
 	const assignMonitors = (events) => {
-		events.log.monitor(log)
-		events.logOpened.monitor(log)
+		events.initiated.monitor(initiated)
+		events.startRound.monitor(startRound)
+		events.increasePrice.monitor(increasePrice)
 		events.notify.monitor(notify)
-		events.round.monitor(updateRound)
-		events.balance.monitor(updateBalance)
-		events.price.monitor(receivePrice)
 		events.announce.monitor(announce)
 	}
 

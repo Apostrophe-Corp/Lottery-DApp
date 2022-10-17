@@ -45,13 +45,15 @@ export const main = Reach.App(() => {
 		drawATicket: Fun([], UInt),
 	})
 
-	const Logger = Events({
-		log: [state],
-		logOpened: [state, UInt],
-		price: [UInt, Bool],
+	const Fire = Events({
+		initiated: [],
+		// Round, Deadline, Price
+		startRound: [UInt, UInt, UInt],
+		// IncreasedAmount
+		increasePrice: [UInt],
+		// Winner, UInt
 		notify: [Address, UInt],
-		round: [UInt],
-		balance: [UInt],
+		// Winner, Ticket, CanContinue, Balance
 		announce: [Address, UInt, Bool, UInt],
 	})
 
@@ -62,26 +64,20 @@ export const main = Reach.App(() => {
 		)
 	})
 	Deployer.publish(deadline, paymentAmount, target)
-	Logger.log(state.pad('initiating'))
-	commit()
-	Deployer.publish()
+	Fire.initiated()
 
 	var [rounds, currentBal, totalGathered] = [1, balance(), 0]
 	invariant(balance() == currentBal)
 	while (totalGathered < target) {
 		commit()
-
 		Deployer.only(() => {
 			const { generatedTickets, winningIndex } = declassify(
 				interact.generate(numOfTickets)
 			)
 		})
 		Deployer.publish(generatedTickets, winningIndex)
-		Logger.price(paymentAmount, false)
-		Logger.round(rounds)
-
 		const [timeRemaining, keepGoing] = makeDeadline(deadline)
-		Logger.logOpened(state.pad('opened'), deadline)
+		Fire.startRound(rounds, deadline, paymentAmount)
 		const [outcome, currentOwner, currentBalance, playerCount, amtCont] =
 			parallelReduce([LOST, Deployer, balance(), 0, 0])
 				.invariant(balance() == currentBalance)
@@ -97,7 +93,7 @@ export const main = Reach.App(() => {
 							)
 							const currentHolder = verdict == WON ? this : currentOwner
 							notify(ticketNumber)
-							Logger.notify(this, ticketNumber)
+							Fire.notify(this, ticketNumber)
 							return [
 								verdict,
 								currentHolder,
@@ -110,10 +106,8 @@ export const main = Reach.App(() => {
 				})
 				.timeout(timeRemaining(), () => {
 					Deployer.publish()
-					Logger.log(state.pad('timeout'))
 					const increasedPayment = (paymentAmount / 100) * 125
-					Logger.price(increasedPayment, true)
-					Logger.logOpened(state.pad('opened'), deadline)
+					Fire.increasePrice(increasedPayment)
 					const [
 						tOutcome,
 						tCurrentOwner,
@@ -140,7 +134,7 @@ export const main = Reach.App(() => {
 									)
 									const currentHolder = verdict == WON ? this : tCurrentOwner
 									notify(ticketNumber)
-									Logger.notify(this, ticketNumber)
+									Fire.notify(this, ticketNumber)
 									return [
 										verdict,
 										currentHolder,
@@ -162,8 +156,7 @@ export const main = Reach.App(() => {
 		if (balance() >= amtCont / 2) {
 			transfer(amtCont / 2).to(currentOwner)
 		}
-		Logger.balance(totalGathered + amtCont / 2)
-		Logger.announce(
+		Fire.announce(
 			currentOwner,
 			generatedTickets[winningIndex > 4 ? 0 : winningIndex],
 			balance() < target ? true : false,

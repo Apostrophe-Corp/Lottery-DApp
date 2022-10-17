@@ -28,22 +28,25 @@ const Participants = () => {
 
 	useEffect(() => {
 		const doSomething = async () => {
-			if (hasIncreased === true) {
-				setBClass((previous) => fmtClasses(previous, styles.zOut))
-				await sleep(1500)
-				setBConClass((previous) => fmtClasses(previous, styles.increased))
-				await sleep(1000)
-				setBClass((previous) => fmtClasses(styles.button))
-			} else {
-				setBClass((previous) => fmtClasses(previous, styles.zOut))
-				await sleep(1500)
-				setBConClass((previous) => fmtClasses(styles.bContainer))
-				await sleep(1000)
-				setBClass((previous) => fmtClasses(styles.button))
-			}
+			setBClass((previous) => fmtClasses(styles.button, styles.zOut))
+			await sleep(1500)
+			setBConClass((previous) => fmtClasses(styles.increased))
+			await sleep(1000)
+			setBClass((previous) => fmtClasses(styles.button))
 		}
-		doSomething()
-	}, [hasIncreased, isOpen, setBClass, setBConClass, sleep])
+		const doSomeOtherThing = async () => {
+			setBClass((previous) => fmtClasses(styles.button, styles.zOut))
+			await sleep(1500)
+			setBConClass((previous) => fmtClasses(styles.bContainer))
+			await sleep(1000)
+			setBClass((previous) => fmtClasses(styles.button))
+		}
+		if (hasIncreased) {
+			doSomething()
+		} else {
+			doSomeOtherThing()
+		}
+	}, [hasIncreased])
 
 	return (
 		<div className={useClasses(styles.container)}>

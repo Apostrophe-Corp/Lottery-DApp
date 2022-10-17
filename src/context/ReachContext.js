@@ -302,7 +302,6 @@ const ReachContextProvider = ({ children }) => {
 				)
 				setContract(someCtcInfo)
 				setHasPurchased(false)
-				setHasIncreased(false)
 				setIsOpen(true)
 				stopWaiting(true)
 				break
@@ -336,8 +335,8 @@ const ReachContextProvider = ({ children }) => {
 
 	const receivePrice = ({ when, what }) => {
 		const incomingAmount = reach.formatCurrency(what[0])
-		if (what[1]) setIsOpen(what[1])
-		setHasIncreased(what[1])
+		// if (what[1]) setIsOpen(what[1])
+		if (what[1]) setHasIncreased(what[1])
 		setAmount(incomingAmount)
 		stopWaiting(true)
 	}

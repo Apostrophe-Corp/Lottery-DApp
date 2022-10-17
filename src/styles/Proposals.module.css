@@ -158,7 +158,14 @@
 }
 
 .increased {
+	width: 200%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-wrap: wrap;
+	border-radius: 5px;
 	transform: translate(-50%) !important;
+	border-radius: 5px;
 }
 
 .higher {

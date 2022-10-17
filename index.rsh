@@ -133,12 +133,12 @@ export const main = Reach.App(() => {
 							return [
 								increasedPayment,
 								(notify) => {
-									const ticketNumber = generatedTickets[playerCount]
+									const ticketNumber = generatedTickets[tPlayerCount]
 									const verdict = winner(
 										generatedTickets[winningIndex > 4 ? 0 : winningIndex],
 										ticketNumber
 									)
-									const currentHolder = verdict == WON ? this : currentOwner
+									const currentHolder = verdict == WON ? this : tCurrentOwner
 									notify(ticketNumber)
 									Logger.notify(this, ticketNumber)
 									return [

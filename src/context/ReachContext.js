@@ -294,6 +294,7 @@ const ReachContextProvider = ({ children }) => {
 				)} ${standardUnit} to deployer and closing contract`
 			)
 			setContractEnd(true)
+			stopWaiting(true)
 		}
 
 		setIsConcluded(true)

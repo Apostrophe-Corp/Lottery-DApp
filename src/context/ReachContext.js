@@ -123,7 +123,6 @@ const ReachContextProvider = ({ children }) => {
 			})
 			setShowPreloader(false)
 		} catch {
-			alertThis('Process failed!')
 			setShowPreloader(false)
 		}
 	}
@@ -348,7 +347,6 @@ const ReachContextProvider = ({ children }) => {
 			setAttacherContract(ctc)
 			someCtcInfo = { ctcInfoStr }
 			assignMonitors(ctc.events)
-			alertThis(`Please wait for the Deployer to open the draw window.`)
 		} catch (error) {
 			console.log({ error })
 			stopWaiting(false)

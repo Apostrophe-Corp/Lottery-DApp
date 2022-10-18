@@ -5,7 +5,6 @@ import styles from '../../styles/Proposals.module.css'
 const Participants = () => {
 	const {
 		participants,
-		sortArrayOfObjects,
 		buyTicket,
 		isDeployer,
 		isOpen,
@@ -62,7 +61,7 @@ const Participants = () => {
 						</div>
 						<span className={fmtClasses(styles.ticket)}>Ticket Number</span>
 					</div>
-					{sortArrayOfObjects(participants, 'id')
+					{participants
 						.filter((el) => el.id > (round - 1) * 5 && el.id <= round * 5)
 						.map((el, index) => {
 							return (
@@ -144,7 +143,7 @@ const Participants = () => {
 					</div>
 					<span className={useClasses(styles.ticket)}>Ticket Number</span>
 				</div>
-				{sortArrayOfObjects(winners, 'id').map((el, index) => {
+				{winners.map((el, index) => {
 					return (
 						<div
 							key={index}

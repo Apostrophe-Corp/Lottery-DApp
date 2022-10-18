@@ -153,8 +153,10 @@ export const main = Reach.App(() => {
 						tAmtCont,
 					]
 				})
-		if (balance() >= amtCont / 2) {
-			transfer(amtCont / 2).to(currentOwner)
+		const Jackpot = (amtCont / 100) * 90
+		const Retained = (amtCont / 100) * 10
+		if (balance() >= Jackpot) {
+			transfer(Jackpot).to(currentOwner)
 		}
 		Fire.announce(
 			currentOwner,
@@ -165,7 +167,7 @@ export const main = Reach.App(() => {
 		;[rounds, currentBal, totalGathered] = [
 			rounds + 1,
 			balance(),
-			totalGathered + amtCont / 2,
+			totalGathered + Retained,
 		]
 		continue
 	}

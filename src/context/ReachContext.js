@@ -7,7 +7,7 @@ import {
 import * as backend from '../../build/index.main.mjs'
 import { useClasses as fmtClasses } from '../hooks/useClasses'
 import styles from '../styles/Global.module.css'
-import { Preloader } from '../components/Preloader'
+import { Preloader, SpinUp, RandomGen } from '../components/Preloader'
 import { Alert } from '../components/Alert'
 const reach = loadStdlib(process.env)
 
@@ -70,7 +70,18 @@ const ReachContextProvider = ({ children }) => {
 	const [[waitingPromise, setContribPromise], [hasIncreased, setHasIncreased]] =
 		[useState({}), useState(false)]
 
-	const [[showPreloader, setShowPreloader], [processing, setProcessing]] = [
+	const [
+		[showPreloader, setShowPreloader],
+		[processing, setProcessing],
+		[showSpinUp, setShowSpinUp],
+		[awaiting, setAwaiting],
+		[showRandomGen, setShowRandomGen],
+		[loading, setLoading],
+	] = [
+		useState(false),
+		useState(false),
+		useState(false),
+		useState(false),
 		useState(false),
 		useState(false),
 	]
@@ -93,6 +104,7 @@ const ReachContextProvider = ({ children }) => {
 		new Promise((resolve) => setTimeout(resolve, milSecs))
 
 	const alertThis = async (message) => {
+		alertResolve?.resolve && alertResolve.resolve()
 		const sleep = (milliseconds) =>
 			new Promise((resolve) => {
 				alertResolve?.resolve && alertResolve.resolve()
@@ -113,17 +125,34 @@ const ReachContextProvider = ({ children }) => {
 	}
 
 	// Async function
-	const startWaiting = async () => {
+	const startWaiting = async (mode) => {
+		const shouldDisplay = (display) => {
+			switch (mode) {
+				case 'processing':
+					setShowPreloader(display)
+					if (display) setProcessing(display)
+					break
+				case 'awaiting':
+					setShowSpinUp(display)
+					if (display) setAwaiting(display)
+					break
+				case 'loading':
+					setShowRandomGen(display)
+					if (display) setLoading(display)
+					break
+				default:
+					break
+			}
+		}
 		try {
 			await new Promise((resolve, reject) => {
 				waitingPromise['resolve'] = resolve
 				waitingPromise['reject'] = reject
-				setShowPreloader(true)
-				setProcessing(true)
+				shouldDisplay(true)
 			})
-			setShowPreloader(false)
+			shouldDisplay(false)
 		} catch {
-			setShowPreloader(false)
+			shouldDisplay(false)
 		}
 	}
 
@@ -149,29 +178,6 @@ const ReachContextProvider = ({ children }) => {
 		else waitingPromise?.reject && waitingPromise.reject()
 	}
 
-	const sortArrayOfObjects = (arrayOfObjects, property) => {
-		if (!arrayOfObjects) return arrayOfObjects
-		if (!Array.isArray(arrayOfObjects)) return arrayOfObjects
-		if (arrayOfObjects.length <= 1) return arrayOfObjects
-		let isInt = false
-		return arrayOfObjects
-			.map((el, index) => {
-				isInt = !isNaN(el?.[property])
-				return !isInt
-					? `${el?.[property]?.[0]
-							?.toUpperCase()
-							?.concat(el?.[property]?.slice(1))}^-.-^${index}`
-					: `${el?.[property]}^-.-^${index}`
-			})
-			?.sort(
-				isInt
-					? (a, b) =>
-							Number(a?.split('^-.-^')?.[0]) - Number(b?.split('^-.-^')?.[0])
-					: undefined
-			)
-			?.map((el) => arrayOfObjects[el?.split('^-.-^')?.[1]])
-	}
-
 	const connectAccount = async () => {
 		const account = await reach.getDefaultAccount()
 		const balAtomic = await reach.balanceOf(account)
@@ -192,7 +198,7 @@ const ReachContextProvider = ({ children }) => {
 		})
 		setTerms(terms)
 		console.log(terms)
-		startWaiting()
+		startWaiting('processing')
 		return [
 			terms[0],
 			reach.parseCurrency(terms[1]),
@@ -255,7 +261,7 @@ const ReachContextProvider = ({ children }) => {
 		setViews({ view: 'Participants', wrapper: 'AppWrapper' })
 	}
 
-	const startRound = async ({ what }) => {
+	const startRound = ({ when, what }) => {
 		setRound(parseInt(what[0]))
 		setContract(someCtcInfo)
 		setHasIncreased(false)
@@ -271,44 +277,45 @@ const ReachContextProvider = ({ children }) => {
 		stopWaiting(true)
 	}
 
-	const increasePrice = async ({ what }) => {
+	const increasePrice = ({ when, what }) => {
 		const incomingAmount = reach.formatCurrency(what[0])
 		setAmount(incomingAmount)
 		setHasIncreased(true)
+		stopWaiting(true)
 	}
 
-	const announce = async ({ when, what }) => {
-		await sleep(5000)
-		await alertThis(
+	const announce = ({ when, what }) => {
+		alertThis(
 			`Congrats, user with ticket number ${what[1]}, you just won half the pot!`
-		)
+		).then(() => {
+			if (what[2]) {
+				// startWaiting('loading')
+				alertThis(`The next round would begin shortly`)
+			} else {
+				alertThis(
+					`The targeted amount has been raised, transferring contract balance of ${reach.formatCurrency(
+						what[3],
+						4
+					)} ${standardUnit} to deployer and closing contract`
+				).then(() => {
+					setContractEnd(true)
+					stopWaiting(true)
+				})
+			}
 
-		if (what[2]) {
-			await alertThis(`The next round would begin shortly`)
-			startWaiting()
-		} else {
-			await alertThis(
-				`The targeted amount has been raised, transferring contract balance of ${reach.formatCurrency(
-					what[3],
-					4
-				)} ${standardUnit} to deployer and closing contract`
-			)
-			setContractEnd(true)
-			stopWaiting(true)
-		}
-
-		setIsConcluded(true)
-		setCanContinue(what[2])
-		setBalance(reach.formatCurrency(what[3], 4))
-		const id = winners.length + 1
-		const newWinners = winners
-		newWinners.push({
-			id,
-			time: parseInt(when),
-			address: what[0],
-			ticket: parseInt(what[1]),
+			setIsConcluded(true)
+			setCanContinue(what[2])
+			setBalance(reach.formatCurrency(what[3], 4))
+			const id = winners.length + 1
+			const newWinners = winners
+			newWinners.push({
+				id,
+				time: parseInt(when),
+				address: what[0],
+				ticket: parseInt(what[1]),
+			})
+			setWinners([...newWinners])
 		})
-		setWinners([...newWinners])
 	}
 
 	const assignMonitors = (events) => {
@@ -342,7 +349,7 @@ const ReachContextProvider = ({ children }) => {
 	const attach = async (ctcInfoStr) => {
 		try {
 			reset()
-			startWaiting()
+			startWaiting('processing')
 
 			const ctc = user.account.contract(backend, JSON.parse(ctcInfoStr))
 			setAttacherContract(ctc)
@@ -363,7 +370,7 @@ const ReachContextProvider = ({ children }) => {
 	}
 
 	const buyTicket = async () => {
-		startWaiting()
+		startWaiting('awaiting')
 		setHasPurchased(true)
 		try {
 			alertThis(
@@ -407,6 +414,14 @@ const ReachContextProvider = ({ children }) => {
 		setShowPreloader,
 		processing,
 		setProcessing,
+		showSpinUp,
+		setShowSpinUp,
+		awaiting,
+		setAwaiting,
+		showRandomGen,
+		setShowRandomGen,
+		loading,
+		setLoading,
 
 		startWaiting,
 		stopWaiting,
@@ -425,7 +440,6 @@ const ReachContextProvider = ({ children }) => {
 
 		selectDeployer,
 		selectAttacher,
-		sortArrayOfObjects,
 		winners,
 		contractEnd,
 
@@ -445,6 +459,8 @@ const ReachContextProvider = ({ children }) => {
 			</Helmet>
 			<Alert />
 			{processing && <Preloader />}
+			{awaiting && <SpinUp />}
+			{loading && <RandomGen />}
 			{children}
 			{user.account && (
 				<div className={fmtClasses(styles.last)}>

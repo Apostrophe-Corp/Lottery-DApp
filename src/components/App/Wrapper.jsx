@@ -8,7 +8,7 @@ const Wrapper = ({ children }) => {
         <div className={ useClasses() }>
             <div className={ useClasses() }>
                 <header className={ useClasses() } id='root'>
-                    <h1 className={ useClasses(styles.mainHeader) }>la Lottery</h1>
+                    <h1 className={ useClasses(styles.mainHeader) }>Lottery</h1>
                     {
                         contract?.ctcInfoStr &&
                         <h3 className={ fmtClasses(styles.subTheme, styles.flat) }>
@@ -17,8 +17,8 @@ const Wrapper = ({ children }) => {
                             { contract?.ctcInfoStr }
                         </h3>
                     }
-                    <div className={ useClasses(styles.container) }>{ children }</div>
                 </header>
+                    <div className={ useClasses(styles.container) }>{ children }</div>
             </div>
         </div>
     );

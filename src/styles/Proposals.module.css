@@ -67,7 +67,6 @@
 	flex-wrap: wrap;
 	justify-content: center;
 	align-items: center;
-	border-right: 2px solid #fff;
 }
 
 .address {
@@ -85,7 +84,6 @@
 	flex-wrap: wrap;
 	justify-content: flex-end;
 	align-items: center;
-	border-left: 2px solid #fff;
 }
 
 .winner {
@@ -106,16 +104,6 @@
 	border-radius: 5px;
 }
 
-.button {
-	composes: choices from './Terms.module.css';
-	composes: positive from './Terms.module.css';
-	width: fit-content;
-	padding: 5px 10px;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-}
-
 .littleText {
 	display: inline-block;
 	width: 100%;
@@ -134,7 +122,7 @@
 }
 
 .view {
-	width: 300px;
+	width: 200px;
 	overflow-x: hidden;
 	border-radius: 5px;
 }
@@ -161,11 +149,18 @@
 	composes: choices from './Terms.module.css';
 	composes: positive from './Terms.module.css';
 	width: 100%;
-	padding: 5px 10px;
+	height: 50px;
+	padding: 5px;
+	color: #fff;
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	transform: scale(1, 1) !important;
+	transition: all 0.3s !important;
+}
+
+.button:hover {
+	font-size: 1.05em;
 }
 
 .increased {

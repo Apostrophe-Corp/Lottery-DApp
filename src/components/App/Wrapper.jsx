@@ -12,8 +12,6 @@ const Wrapper = ({ children }) => {
                     {
                         contract?.ctcInfoStr &&
                         <h3 className={ fmtClasses(styles.subTheme, styles.flat) }>
-                            Contract Information
-                            <br />
                             { contract?.ctcInfoStr }
                         </h3>
                     }

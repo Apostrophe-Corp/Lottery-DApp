@@ -14,7 +14,7 @@ Developers using this DApp should already have Reach, Docker and Node installed 
 The guidelines for installation can be found below
 Instructions for installing Reach and Docker
 Instructions for installing Node
-In addition, they should have an Algorand wallet (preferably Pera Algo Wallet) installed on their phone and loaded with Testnet Algos in order to be able to sign transactions and contribute to proposals. The wallet can be installed from the App store (i-Phone) or Google Play (Android) as is appropiate.
+In addition, they should have an Algorand wallet (preferably Pera Algo Wallet) installed on their phone and loaded with Testnet Algos in order to be able to sign transactions and buy tickets. The wallet can be installed from the App store (i-Phone) or Google Play (Android) as is appropiate.
 
 You can some testnet Algos from the Algo Faucet.
 
@@ -99,4 +99,4 @@ To contribute, simply:
 Fork this repo, make your updates and additions.
 Create a GitHub discussion and bring your new ideas to our notice.
 Once approved, set up a pull request.
-After revision, your name will forever be among the wonderful develpers who contributed to building Reach DAO.
+After revision, your name will forever be among the wonderful develpers who contributed to building the Lottery DApp.

@@ -4,9 +4,7 @@ import styles from '../../styles/Global.module.css'
 
 const ConnectAccount = () => {
 	const { connectAccount } = useReach()
-	useEffect(() => {
-		connectAccount()
-	}, [connectAccount])
+	
 	return (
 		<div className={useClasses(styles.subContainer)}>
 			<div className={useClasses()}>

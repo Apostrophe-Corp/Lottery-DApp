@@ -153,8 +153,8 @@ export const main = Reach.App(() => {
 						tAmtCont,
 					]
 				})
-		const Jackpot = (amtCont / 100) * 90
-		const Retained = (amtCont / 100) * 10
+		const Jackpot = (amtCont / 100) * 50
+		const Retained = (amtCont / 100) * 50
 		if (balance() >= Jackpot) {
 			transfer(Jackpot).to(currentOwner)
 		}

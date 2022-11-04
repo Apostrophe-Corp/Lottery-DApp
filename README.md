@@ -85,7 +85,7 @@ sudo service docker start
 
 Should you encounter any other errors, please tag either goonerlabs#1008 0r Emmanuel Agbavwe#2954 on discord.
 
-##Authors
+## Authors
 
 Owolabi Adeyemi
 
